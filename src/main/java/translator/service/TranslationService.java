@@ -11,6 +11,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import translator.dao.TranslationsRepository;
 import translator.domain.Translation;
@@ -26,7 +27,8 @@ import java.util.stream.Collectors;
 @Service
 public class TranslationService {
 
-    private static final String apiKey = "trnsl.1.1.20190328T214958Z.754e766f9e6febed.b9f3d0ba088b6977cd73781131a4aa8d563d3b3c";
+    @Value("${yandex.api.key}")
+    private String apiKey;
     private static final String charset = "UTF-8";
 
     @Autowired
@@ -48,7 +50,7 @@ public class TranslationService {
         tn.setTnFrom(from);
         tn.setTnTo(to);
 
-        String result = useTranslateApi(text, from, to);
+        String result = callYandexTranspator(text, from, to);
 
         tn.setTnResult(result);
         tnRepo.save(tn);
@@ -64,7 +66,7 @@ public class TranslationService {
      * @param to   - result language
      * @return - String, that contain translation of each word
      */
-    private String useTranslateApi(String text, String from, String to) {
+    private String callYandexTranspator(String text, String from, String to) {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = null;
 
@@ -87,10 +89,8 @@ public class TranslationService {
             result = Arrays.stream(words)
                     .map(word -> word.replaceAll("[]\\[\"]", "") + " ")
                     .collect(Collectors.joining()).trim();
-        } catch (UnsupportedEncodingException | ClientProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
         return result;
