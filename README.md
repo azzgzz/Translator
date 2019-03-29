@@ -1,4 +1,4 @@
-<m2<**Translator**</m2>
+<m2>**Translator**</m2>
 
 For start application clone repo, then build<br>
 ```
