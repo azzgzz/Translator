@@ -1,7 +1,9 @@
-#Translator
+*Translator*
 
 For start application clone repo, then build<br>
+```
 mvn spring-boot:run
+```
 
 try<br>
 localhost:8080/translate?text=Эта%20программа%20работает?&from=ru&to=en<br>
