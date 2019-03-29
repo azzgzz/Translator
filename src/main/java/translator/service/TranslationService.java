@@ -2,7 +2,7 @@ package translator.service;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
-import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -11,6 +11,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import translator.dao.TranslationsRepository;
 import translator.domain.Translation;
@@ -26,18 +27,24 @@ import java.util.stream.Collectors;
 @Service
 public class TranslationService {
 
-    private static final String apiKey = "trnsl.1.1.20190328T214958Z.754e766f9e6febed.b9f3d0ba088b6977cd73781131a4aa8d563d3b3c";
-    private static final String charset = "UTF-8";
+    @Value("${yandex.api.key}")
+    private  String apiKey;
+    @Value("${yandex.api.url}")
+    private String apiUrl;
+    @Value("${yandex.api.content-type}")
+    private String apiContentType;
+    @Value("${yandex.api.charset}")
+    private String apiCharset;
 
     @Autowired
-    private TranslationsRepository tnRepo;
+    private TranslationsRepository translationsRepository;
 
     public void save(Translation tn) {
-        tnRepo.save(tn);
+        translationsRepository.save(tn);
     }
 
     public List<Translation> findAll() {
-        return tnRepo.findAll();
+        return translationsRepository.findAll();
     }
 
     public String translate(String text, String from, String to) {
@@ -48,10 +55,10 @@ public class TranslationService {
         tn.setTnFrom(from);
         tn.setTnTo(to);
 
-        String result = useTranslateApi(text, from, to);
+        String result = callYandexTranslateApi(text, from, to);
 
         tn.setTnResult(result);
-        tnRepo.save(tn);
+        translationsRepository.save(tn);
 
         return result;
     }
@@ -64,35 +71,47 @@ public class TranslationService {
      * @param to   - result language
      * @return - String, that contain translation of each word
      */
-    private String useTranslateApi(String text, String from, String to) {
+    private String callYandexTranslateApi(String text, String from, String to) {
         CloseableHttpClient httpClient = HttpClients.createDefault();
-        HttpPost httpPost = null;
 
         String[] words = text.split("\\s");
-        String result = "";
 
         try {
-            for (int i = 0; i < words.length; i++) {
-                httpPost = new HttpPost("https://translate.yandex.net/api/v1.5/tr.json/translate?lang=" +
-                        from + "-" + to + "&key=" + apiKey);
-                httpPost.setHeader(HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded; charset=" + charset);
-                httpPost.setEntity(new UrlEncodedFormEntity(Arrays.asList(
-                        new BasicNameValuePair("text", words[i])), charset));
-                HttpEntity entity = httpClient
-                        .execute(httpPost)
-                        .getEntity();
-                words[i] = (new JSONObject(EntityUtils.toString(entity))).get("text").toString();
-            }
-
-            result = Arrays.stream(words)
-                    .map(word -> word.replaceAll("[]\\[\"]", "") + " ")
-                    .collect(Collectors.joining()).trim();
-        } catch (UnsupportedEncodingException | ClientProtocolException e) {
+            for (int i = 0; i < words.length; i++)
+                words[i] = (getResponse(httpClient, fillPostRequest(words[i], from, to))).get("text").toString();
+        } catch (IOException e) {
             e.printStackTrace();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         }
 
-        return result;
+
+        return Arrays.stream(words)
+                .map(word -> trimBraces(word) + " ")
+                .collect(Collectors.joining())
+                .trim();
+    }
+
+    /**
+     * from ["text"] to text
+     * @param s result of jsonObject.get("key")
+     * @return text without braces
+     */
+    private String trimBraces(String s) {
+        return s.substring(2, s.length()-2);
+    }
+
+    private HttpPost fillPostRequest(String word, String from, String to) throws UnsupportedEncodingException {
+        HttpPost httpPost = new HttpPost(apiUrl + "?lang=" + from + "-" + to + "&key=" + apiKey);
+        httpPost.setHeader(HttpHeaders.CONTENT_TYPE, apiContentType);
+        httpPost.setEntity(new UrlEncodedFormEntity(Arrays.asList(
+                new BasicNameValuePair("text", word)), apiCharset));
+        return httpPost;
+    }
+
+    private JSONObject getResponse(HttpClient httpClient, HttpPost httpPost) throws IOException {
+        HttpEntity entity = httpClient
+                .execute(httpPost)
+                .getEntity();
+        return new JSONObject(EntityUtils.toString(entity));
     }
 }
