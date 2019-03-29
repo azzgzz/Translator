@@ -1,4 +1,4 @@
-<m2>**Translator**</m2>
+<m5>**Translator**</m2>
 
 For start application clone repo, then<br>
 ```
@@ -8,7 +8,7 @@ mvn spring-boot:run
 <a href= "localhost:8080/translate?text=Эта%20программа%20работает?&from=ru&to=en">localhost:8080/translate?text=Эта%20программа%20работает?&from=ru&to=en</a><br>
 <a href= "localhost:8080/translate?text=how%20to%20close%20this%20app%20without%20SIGKILL&from=en&to=ru">localhost:8080/translate?text=how%20to%20close%20this%20app%20without%20SIGKILL&from=en&to=ru</a>
 
-*Rest request GET /translate/{from}/{to}/{text}* <br>
+*Rest request* GET /translate/from/to/text <br>
 
 localhost:8080/translate/ru/en/работает%20ли%20рест%20запрос?
 
