@@ -18,7 +18,7 @@ public class Translation {
     @Column
     private LocalTime tnTime;
 
-    @Column
+    @Column(length = 1000)
     private String tnText;
 
     @Column

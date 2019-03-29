@@ -17,17 +17,12 @@ public class TranslationController {
     @Autowired
     private TranslationService tnService;
 
-    @RequestMapping("p")
+    @RequestMapping
     public String translate(@RequestParam (name ="text") String text,
                              @RequestParam (name = "from") String from,
                              @RequestParam (name = "to") String to) {
         String result = tnService.translate(text, from, to);
         return result;
-    }
-
-    @RequestMapping
-    public String translate() {
-        return "Don`t be shy, write text!";
     }
 
     @RequestMapping("show_base")
