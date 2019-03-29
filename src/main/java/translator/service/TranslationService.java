@@ -1,6 +1,7 @@
 package translator.service;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 public class TranslationService {
 
     private static final String apiKey = "trnsl.1.1.20190328T214958Z.754e766f9e6febed.b9f3d0ba088b6977cd73781131a4aa8d563d3b3c";
+    private static final String charset = "UTF-8";
 
     @Autowired
     private TranslationsRepository tnRepo;
@@ -56,9 +58,10 @@ public class TranslationService {
 
     /**
      * Using Yandex Translate API
+     *
      * @param text - text to translate
      * @param from - source language
-     * @param to - result language
+     * @param to   - result language
      * @return - String, that contain translation of each word
      */
     private String useTranslateApi(String text, String from, String to) {
@@ -72,8 +75,9 @@ public class TranslationService {
             for (int i = 0; i < words.length; i++) {
                 httpPost = new HttpPost("https://translate.yandex.net/api/v1.5/tr.json/translate?lang=" +
                         from + "-" + to + "&key=" + apiKey);
+                httpPost.setHeader(HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded; charset=" + charset);
                 httpPost.setEntity(new UrlEncodedFormEntity(Arrays.asList(
-                        new BasicNameValuePair("text", words[i]))));
+                        new BasicNameValuePair("text", words[i])), charset));
                 HttpEntity entity = httpClient
                         .execute(httpPost)
                         .getEntity();

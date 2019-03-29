@@ -1,6 +1,7 @@
 package apitest;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
@@ -22,10 +23,10 @@ public class TestYandexApi {
     private static final String apiKey = "trnsl.1.1.20190328T214958Z.754e766f9e6febed.b9f3d0ba088b6977cd73781131a4aa8d563d3b3c";
 
     @Test
-    public static void test(String[] args) {
-        String text = "my daddy is cool";
-        String lang = "en-ru";
-
+    public void test() {
+        String text = "русский язык тоже работает!";
+        String lang = "ru-en";
+        String charset = "UTF-8";
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = null;
 
@@ -37,9 +38,9 @@ public class TestYandexApi {
 
                 httpPost = new HttpPost("https://translate.yandex.net/api/v1.5/tr.json/translate?lang=" +
                         lang + "&key=" + apiKey);
-
+                httpPost.setHeader(HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded; charset=" + charset);
                 httpPost.setEntity(new UrlEncodedFormEntity(Arrays.asList(
-                        new BasicNameValuePair("text", words[i]))));
+                        new BasicNameValuePair("text", words[i])), charset));
 
                 HttpEntity entity = httpClient
                         .execute(httpPost)
@@ -60,6 +61,4 @@ public class TestYandexApi {
             e.printStackTrace();
         }
     }
-
-
 }
