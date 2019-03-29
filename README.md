@@ -13,5 +13,5 @@ mvn spring-boot:run
 localhost:8080/translate/ru/en/работает%20ли%20рест%20запрос?
 
 *To see your request history use* <br>
-<a href="localhost:8080/translate/show_base">localhost:8080/translate/show_base</a><br>
+<a href="localhost:8080/translate/history">localhost:8080/translate/history</a><br>
 (this app uses in-memory database hsqlDb)
